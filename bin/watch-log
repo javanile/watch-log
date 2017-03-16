@@ -1,0 +1,4 @@
+#!/usr/bin/env node
+
+// call command-line utility
+require("../src/watch-log").run(process.argv.slice(2));
