@@ -1,6 +1,6 @@
 {
   "name": "watch-log",
-  "version": "0.0.3",
+  "version": "0.0.4",
   "license": "MIT",
   "author": {
     "name": "Francesco Bianco",
@@ -9,6 +9,9 @@
   "repository": {
     "type": "git",
     "url": "https://github.com/Javanile/watch-log.git"
+  },
+  "dependencies": {
+    "watch-file": "*"
   },
   "bin": {
     "watch-log": "./bin/watch-log"
