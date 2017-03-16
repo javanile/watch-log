@@ -37,9 +37,9 @@ module.exports = {
         fs.stat(file, function(err, stat) {
             if(err == null) {
                 require(file);
-                self.start();
+                self.start(file);
             } else if(err.code == 'ENOENT') {
-                console.log("watch-log: config file not found.");
+                console.log("WATCH-LOG >  Config file 'watch.log.js' not found.");
                 process.exit();
             }
         });
@@ -56,18 +56,23 @@ module.exports = {
     /**
      *
      */
-    start: function() {
+    start: function(config) {
 
-        process.stdout.write("npm watch-log: watching... ");
+        //
+        process.stdout.write(
+            "WATCH-LOG >  Config file: '" + config + "'.\n" +
+            "             Watching... "
+        );
+
+        //
+        for (var i in this.watch.files) {
+            var file = base + "/" + this.watch.files[i];
+            this.initStat(file);
+            fw.add(file);
+        }
 
         //
         var self = this;
-        for (var i in this.watch.files) {
-            var file = base + "/" + this.watch.files[i];
-            fw.add(file);
-            this.initStat(file);
-        }
-
         fw.on("change", function (name, stat) {
             if (typeof self.stats[name] === "number") {
                 var diff = stat.size - self.stats[name];
@@ -178,7 +183,7 @@ module.exports = {
         }
         var key = path.basename(filename, ".log").toUpperCase();
         var pad = this.pad(key.length + 4);
-        var msg = key + " >  " + logLines.join("\n" + pad);
+        var msg = key + " >  " + logLines.slice(0, nuol).join("\n" + pad);
         process.stdout.write("\n" + msg + " ");
     },
 
