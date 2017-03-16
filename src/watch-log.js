@@ -5,9 +5,11 @@ var fw = require("chokidar").watch("all", {
     usePolling: true
 });
 
+var nuol = 6;
 var path = require("path");
 var base = process.cwd();
 var file = base + "/watch.log.js";
+
 
 module.exports = {
 
@@ -22,7 +24,7 @@ module.exports = {
     /**
      *
      */
-    files: {
+    stats: {
 
     },
 
@@ -56,28 +58,29 @@ module.exports = {
      */
     start: function() {
 
-        //
-        for (var i in this.watch.files) {
-            var f = base + "/" + this.watch.files[i];
-            fw.add(base + "/" + this.watch.files[i]);
-        }
+        process.stdout.write("npm watch-log: watching... ");
 
         //
         var self = this;
-        fw.on("change", function (name, stat) {
+        for (var i in this.watch.files) {
+            var file = base + "/" + this.watch.files[i];
+            fw.add(file);
+            this.initStat(file);
+        }
 
-            if (typeof self.files[name] === "number") {
-                var diff = stat.size - self.files[name];
+        fw.on("change", function (name, stat) {
+            if (typeof self.stats[name] === "number") {
+                var diff = stat.size - self.stats[name];
                 if (diff > 0) {
                     self.diffLog(name, diff);
                 } else {
-                    self.tailLog(name, 5);
+                    self.tailLog(name, nuol);
                 }
             } else {
-                self.tailLog(name, 5);
+                self.tailLog(name, nuol);
             }
 
-            self.files[name] = stat.size;
+            self.stats[name] = stat.size;
         });
     },
 
@@ -101,11 +104,10 @@ module.exports = {
      * @param tail
      */
     tailLog: function(filename, tail) {
-        this.tail(filename, 5, function(err, lines) {
+        var self = this;
+        this.tail(filename, nuol, function(err, lines) {
             if (err) { return console.log(err); }
-            var key = path.basename(filename, ".log");
-            var msg = key + ": " + lines.join("\n - ");
-            console.log(msg);
+            self.print(filename, lines);
         })
     },
 
@@ -129,11 +131,66 @@ module.exports = {
      * @param diff
      */
     diffLog: function (filename, diff) {
+        var self = this;
         this.diff(filename, diff, function(err, lines) {
             if (err) { return console.log(err); }
-            var key = path.basename(filename, ".log");
-            var msg = key + ": " + lines.slice(0, 5).join("\n");
-            console.log(msg);
+            self.print(filename, lines.slice(0, nuol));
+        });
+    },
+
+    /**
+     *
+     * @param len
+     * @returns {string}
+     */
+    pad: function (len) {
+        var pad = "";
+        for (var i=0; i<len; i++) {
+            pad += " ";
+        }
+        return pad;
+    },
+
+    /**
+     *
+     * @param filename
+     * @param lines
+     */
+    print: function (filename, lines) {
+        var limit = 110;
+        var breaks = ";,:/>\\";
+        var logLines = [];
+        for (var i in lines) {
+            var tabs = "";
+            var line = lines[i];
+            while (line.length > limit) {
+                var pos = limit + 30;
+                for (var j in breaks) {
+                    var p = line.indexOf(breaks[j], limit);
+                    if (p !== -1 && p < pos) { pos = p; }
+                }
+                var part = line.substr(0, pos + 1);
+                line = line.substr(pos + 1);
+                logLines.push(tabs + part.trim());
+                tabs = "    ";
+            }
+            logLines.push(tabs + line.trim());
+        }
+        var key = path.basename(filename, ".log").toUpperCase();
+        var pad = this.pad(key.length + 4);
+        var msg = key + " >  " + logLines.join("\n" + pad);
+        process.stdout.write("\n" + msg + " ");
+    },
+
+    /**
+     *
+     * @param file
+     */
+    initStat: function(file) {
+        var self = this;
+        fs.stat(file, function(err, stat) {
+            //if (err) { return; }
+            self.stats[file] = stat.size;
         });
     }
 };
