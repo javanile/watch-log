@@ -1,5 +1,5 @@
 {
-  "name": "wlog",
+  "name": "watch-log",
   "version": "0.0.1",
   "license": "MIT",
   "author": {
@@ -8,10 +8,10 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/Javanile/wlog.git"
+    "url": "https://github.com/Javanile/watch-log.git"
   },
   "bin": {
-    "ndev": "./bin/wlog"
+    "watch-log": "./bin/watch-log"
   },
   "scripts": {
   }
