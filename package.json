@@ -1,6 +1,6 @@
 {
   "name": "watch-log",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "license": "MIT",
   "author": {
     "name": "Francesco Bianco",
@@ -13,6 +13,7 @@
   "bin": {
     "watch-log": "./bin/watch-log"
   },
+  "main": "./src/watch-log.js",
   "scripts": {
   }
 }
