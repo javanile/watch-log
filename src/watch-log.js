@@ -1,6 +1,6 @@
 
 var fs = require("fs");
-var fw = require("watch-file");
+var fw = require("watch-files");
 
 var base = process.cwd();
 var file = base + "/watch.log.js";
