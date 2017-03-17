@@ -72,8 +72,6 @@ module.exports = {
      * @param config
      */
     start: function(config) {
-
-        //
         process.stdout.write(
             "WATCH-LOG >  Config file: '" + config + "'.\n" +
             "             Watching... "
@@ -105,7 +103,7 @@ module.exports = {
     },
 
     /**
-     *
+     * Basic tail function get line of file.
      *
      * @param filename
      * @param line_no
@@ -120,7 +118,7 @@ module.exports = {
     },
 
     /**
-     * Print
+     * Print tail of file.
      *
      * @param filename
      * @param tail
@@ -208,7 +206,10 @@ module.exports = {
     },
 
     /**
+     * Get position to break string line.
      *
+     * @param line
+     * @returns {number}
      */
     linePos: function(line) {
         var breaks = ";,)]:/>\\";
@@ -222,6 +223,7 @@ module.exports = {
     },
 
     /**
+     * Init file size on cache.
      *
      * @param file
      */
