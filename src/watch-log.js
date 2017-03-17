@@ -79,17 +79,18 @@ module.exports = {
     start: function(config) {
         process.stdout.write(
             colors.yellow.bold("WATCH-LOG >") +
-            "  Config file: '" + config + "'.\n" +
-            "             Watching... "
+            "  Config file: '" + config + "'\n"
         );
 
-        //
         for (var i in this.watch.files) {
             if (!this.watch.files.hasOwnProperty(i)) { continue; }
             var file = base + "/" + this.watch.files[i];
             this.initStat(file);
+            process.stdout.write("             Adding file: '"+file+"'\n");
             fw.add(file);
         }
+
+        process.stdout.write("             Watching... ");
 
         //
         var self = this;
