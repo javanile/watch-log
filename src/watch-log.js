@@ -49,6 +49,15 @@ module.exports = {
      * @param args
      */
     run: function(args) {
+
+        //
+        if (args[0] === "--version") {
+            var package = JSON.parse(fs.readFileSync(__dirname + "/../package.json"), "utf8");
+            console.log("watch-log@" + package.version);
+            process.exit();
+        }
+
+        //
         var self = this;
         fs.stat(file, function(err, stat) {
             if(err === null) {
