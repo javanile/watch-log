@@ -10,7 +10,7 @@ var fw = require("chokidar").watch("all", {
     usePolling: true
 });
 
-var nuol = 6;
+var nuol = 8;
 var path = require("path");
 var base = process.cwd();
 var file = base + "/watch.log.js";
@@ -31,6 +31,16 @@ module.exports = {
     stats: {
 
     },
+
+    /**
+     *
+     */
+    prevKey: null,
+
+    /**
+     *
+     */
+    limit: 110,
 
     /**
      *
@@ -172,19 +182,13 @@ module.exports = {
      * @param lines
      */
     print: function (filename, lines) {
-        var limit = 110;
-        var breaks = ";,)]:/>\\";
         var logLines = [];
         for (var i in lines) {
+            if (!lines.hasOwnProperty(i)) { continue; }
             var tabs = "";
             var line = lines[i];
-            while (line.length > limit) {
-                var pos = limit + 30;
-                for (var j in breaks) {
-                    if (!breaks.hasOwnProperty(j)) { continue; }
-                    var p = line.indexOf(breaks[j], limit);
-                    if (p !== -1 && p < pos) { pos = p; }
-                }
+            while (line.length > this.limit) {
+                var pos = this.linePos(line);
                 var part = line.substr(0, pos + 1);
                 line = line.substr(pos + 1);
                 logLines.push(tabs + part.trim());
@@ -198,7 +202,23 @@ module.exports = {
         var key = path.basename(filename, ".log").toUpperCase();
         var pad = this.pad(key.length + 4);
         var msg = key + " >  " + logLines.slice(0, nuol).join("\n" + pad);
-        process.stdout.write("\n" + msg + " ");
+        var pre = key === this.prevKey ? "\n" : "\n\n";
+        this.prevKey = key;
+        process.stdout.write(pre + msg + " ");
+    },
+
+    /**
+     *
+     */
+    linePos: function(line) {
+        var breaks = ";,)]:/>\\";
+        var pos = this.limit + 30;
+        for (var j in breaks) {
+            if (!breaks.hasOwnProperty(j)) { continue; }
+            var p = line.indexOf(breaks[j], this.limit);
+            if (p !== -1 && p < pos) { pos = p; }
+        }
+        return pos;
     },
 
     /**
