@@ -79,6 +79,7 @@ module.exports = {
      */
     files: function(files) {
         this.watch.files = this.watch.files.concat(files);
+        console.log("1>", this.watch.files);
     },
 
     /**
@@ -90,6 +91,8 @@ module.exports = {
             colors.yellow.bold("WATCH-LOG >") +
             "  Config file: '" + config + "'\n"
         );
+
+        console.log("2>", this.watch.files);
 
         for (var i in this.watch.files) {
             if (!this.watch.files.hasOwnProperty(i)) { continue; }
