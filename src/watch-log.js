@@ -61,6 +61,7 @@ module.exports = {
         var self = this;
         fs.stat(file, function(err, stat) {
             if(err === null) {
+                console.log("?>",file);
                 try {
                     require(file);
                 }
