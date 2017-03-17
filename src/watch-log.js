@@ -1,3 +1,8 @@
+/*!
+ * watch-log
+ * Copyright(c) 2016-2017 Javanile.org
+ * MIT Licensed
+ */
 
 var fs = require("fs");
 var fw = require("chokidar").watch("all", {
@@ -9,7 +14,6 @@ var nuol = 6;
 var path = require("path");
 var base = process.cwd();
 var file = base + "/watch.log.js";
-
 
 module.exports = {
 
@@ -35,11 +39,11 @@ module.exports = {
     run: function(args) {
         var self = this;
         fs.stat(file, function(err, stat) {
-            if(err == null) {
+            if(err === null) {
                 require(file);
                 self.start(file);
-            } else if(err.code == 'ENOENT') {
-                console.log("WATCH-LOG >  Config file 'watch.log.js' not found.");
+            } else if(err.code === 'ENOENT') {
+                console.error("WATCH-LOG >  Config file 'watch.log.js' not found.");
                 process.exit();
             }
         });
@@ -55,6 +59,7 @@ module.exports = {
 
     /**
      *
+     * @param config
      */
     start: function(config) {
 
@@ -66,6 +71,7 @@ module.exports = {
 
         //
         for (var i in this.watch.files) {
+            if (!this.watch.files.hasOwnProperty(i)) { continue; }
             var file = base + "/" + this.watch.files[i];
             this.initStat(file);
             fw.add(file);
@@ -84,12 +90,12 @@ module.exports = {
             } else {
                 self.tailLog(name, nuol);
             }
-
             self.stats[name] = stat.size;
         });
     },
 
     /**
+     *
      *
      * @param filename
      * @param line_no
@@ -104,6 +110,7 @@ module.exports = {
     },
 
     /**
+     * Print
      *
      * @param filename
      * @param tail
@@ -117,6 +124,7 @@ module.exports = {
     },
 
     /**
+     * Basic diff function.
      *
      * @param filename
      * @param line_no
@@ -131,6 +139,7 @@ module.exports = {
     },
 
     /**
+     * Print log with diff on file
      *
      * @param filename
      * @param diff
@@ -144,6 +153,7 @@ module.exports = {
     },
 
     /**
+     * Build a spaces padded string.
      *
      * @param len
      * @returns {string}
@@ -163,7 +173,7 @@ module.exports = {
      */
     print: function (filename, lines) {
         var limit = 110;
-        var breaks = ";,:/>\\";
+        var breaks = ";,)]:/>\\";
         var logLines = [];
         for (var i in lines) {
             var tabs = "";
@@ -171,6 +181,7 @@ module.exports = {
             while (line.length > limit) {
                 var pos = limit + 30;
                 for (var j in breaks) {
+                    if (!breaks.hasOwnProperty(j)) { continue; }
                     var p = line.indexOf(breaks[j], limit);
                     if (p !== -1 && p < pos) { pos = p; }
                 }
@@ -179,7 +190,10 @@ module.exports = {
                 logLines.push(tabs + part.trim());
                 tabs = "    ";
             }
-            logLines.push(tabs + line.trim());
+            line = line.trim();
+            if (line.length > 0) {
+                logLines.push(tabs + line.trim());
+            }
         }
         var key = path.basename(filename, ".log").toUpperCase();
         var pad = this.pad(key.length + 4);
@@ -194,7 +208,7 @@ module.exports = {
     initStat: function(file) {
         var self = this;
         fs.stat(file, function(err, stat) {
-            //if (err) { return; }
+            if (err) { return; }
             self.stats[file] = stat.size;
         });
     }
