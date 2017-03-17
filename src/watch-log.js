@@ -188,6 +188,7 @@ module.exports = {
     print: function (filename, lines) {
         var logLines = [];
         for (var i in lines) {
+
             if (!lines.hasOwnProperty(i)) { continue; }
             var tabs = "";
             var line = lines[i];
@@ -195,20 +196,22 @@ module.exports = {
                 var pos = this.linePos(line);
                 var part = line.substr(0, pos + 1);
                 line = line.substr(pos + 1);
+                if (i == 0) { part = this.colorFiles(part); }
                 logLines.push(tabs + part.trim());
                 tabs = "    ";
             }
             line = line.trim();
             if (line.length > 0) {
+                if (i == 0) { line = this.colorFiles(line); }
                 logLines.push(tabs + line.trim());
             }
         }
         var key = path.basename(filename, ".log").toUpperCase();
         var pad = this.pad(key.length + 4);
-        var msg = colors.yellow.bold(key + " >") + "  " + logLines.slice(0, nuol).join("\n" + pad);
+        var msg = logLines.slice(0, nuol).join("\n" + pad);
         var pre = key === this.prevKey ? "\n" : "\n\n";
+        process.stdout.write(pre + colors.yellow.bold(key + " >") + "  " + msg + " ");
         this.prevKey = key;
-        process.stdout.write(pre + msg + " ");
     },
 
     /**
@@ -218,7 +221,7 @@ module.exports = {
      * @returns {number}
      */
     linePos: function(line) {
-        var breaks = ";,)]:/>\\";
+        var breaks = ";,)]:> ";
         var pos = this.limit + 30;
         for (var j in breaks) {
             if (!breaks.hasOwnProperty(j)) { continue; }
@@ -239,5 +242,29 @@ module.exports = {
             if (err) { return; }
             self.stats[file] = stat.size;
         });
+    },
+
+    /**
+     *
+     * @param line
+     */
+    colorFiles: function (line) {
+        var hot = line.match(/([^' ]+(\/[^:' ]+)+)/g);
+        if (hot && hot.length > 0) {
+            for (t in hot) {
+                if (hot.hasOwnProperty(t)) {
+                    line = line.replace(hot[t], colors.red.bold(hot[t]));
+                }
+            }
+        }
+        var hot = line.match(/([^' ]+(\\[^:' ]+)+)/g);
+        if (hot && hot.length > 0) {
+            for (t in hot) {
+                if (hot.hasOwnProperty(t)) {
+                    line = line.replace(hot[t], colors.cyan.bold(hot[t]));
+                }
+            }
+        }
+        return line;
     }
 };
