@@ -10,6 +10,8 @@ var fw = require("chokidar").watch("all", {
     usePolling: true
 });
 
+var colors = require('colors/safe');
+
 var nuol = 8;
 var path = require("path");
 var base = process.cwd();
@@ -53,7 +55,10 @@ module.exports = {
                 require(file);
                 self.start(file);
             } else if(err.code === 'ENOENT') {
-                console.error("WATCH-LOG >  Config file 'watch.log.js' not found.");
+                console.error(
+                    colors.yellow.bold("WATCH-LOG >") +
+                    "  Config file 'watch.log.js' not found."
+                );
                 process.exit();
             }
         });
@@ -73,7 +78,8 @@ module.exports = {
      */
     start: function(config) {
         process.stdout.write(
-            "WATCH-LOG >  Config file: '" + config + "'.\n" +
+            colors.yellow.bold("WATCH-LOG >") +
+            "  Config file: '" + config + "'.\n" +
             "             Watching... "
         );
 
@@ -199,7 +205,7 @@ module.exports = {
         }
         var key = path.basename(filename, ".log").toUpperCase();
         var pad = this.pad(key.length + 4);
-        var msg = key + " >  " + logLines.slice(0, nuol).join("\n" + pad);
+        var msg = colors.yellow.bold(key + " >") + "  " + logLines.slice(0, nuol).join("\n" + pad);
         var pre = key === this.prevKey ? "\n" : "\n\n";
         this.prevKey = key;
         process.stdout.write(pre + msg + " ");
