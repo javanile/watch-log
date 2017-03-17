@@ -10,7 +10,7 @@ var fw = require("chokidar").watch("all", {
     usePolling: true
 });
 
-var colors = require('colors/safe');
+var colors = require("colors/safe");
 
 var nuol = 8;
 var path = require("path");
@@ -18,6 +18,11 @@ var base = process.cwd();
 var file = base + "/watch.log.js";
 
 module.exports = {
+
+    /**
+     *
+     */
+    name: "watch-log",
 
     /**
      *
@@ -84,8 +89,9 @@ module.exports = {
      * @param files
      */
     files: function(files) {
-        this.watch.files = this.watch.files.concat(files);
         console.log("1>", this.watch.files);
+        this.watch.files = this.watch.files.concat(files);
+        return true;
     },
 
     /**
