@@ -61,7 +61,12 @@ module.exports = {
         var self = this;
         fs.stat(file, function(err, stat) {
             if(err === null) {
-                require(file);
+                try {
+                    require(file);
+                }
+                catch (e) {
+                    console.log(e);
+                }
                 self.start(file);
             } else if(err.code === 'ENOENT') {
                 console.error(
