@@ -1,4 +1,8 @@
 #!/usr/bin/env node
 
-// call command-line utility
-require("../src/watch-log").run(process.argv.slice(2));
+"use strict";
+var watch = require("../src/watch-log");
+watch.parseArgs(process.argv.slice(2));
+var config = watch.checkConfig();
+require(config);
+watch.start();

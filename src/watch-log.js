@@ -1,33 +1,31 @@
 /*!
- * watch-log
+ * @module: watch-log
+ * @file:   watch-log.js
+ *
  * Copyright(c) 2016-2017 Javanile.org
  * MIT Licensed
  */
 
+var ut = require("./utils.js");
 var fs = require("fs");
 var fw = require("chokidar").watch("all", {
     persistent: true,
     usePolling: true
 });
 
-var colors = require("colors/safe");
-
-var nuol = 8;
 var path = require("path");
 var base = process.cwd();
-var file = base + "/watch.log.js";
+var rows = process.stdout.rows;
+var cols = process.stdout.columns;
+
+var config = base + "/watch.log.js";
 
 module.exports = {
 
     /**
      *
      */
-    name: "watch-log",
-
-    /**
-     *
-     */
-    watch: {
+    _watch: {
         files: [],
         folders: []
     },
@@ -35,53 +33,36 @@ module.exports = {
     /**
      *
      */
-    stats: {
+    _stats: {
 
     },
 
     /**
      *
      */
-    prevKey: null,
-
-    /**
-     *
-     */
-    limit: 110,
+    _prevKey: null,
 
     /**
      *
      * @param args
      */
-    run: function(args) {
-
-        //
+    parseArgs: function(args) {
         if (args[0] === "--version") {
             var package = JSON.parse(fs.readFileSync(__dirname + "/../package.json"), "utf8");
-            console.log("watch-log@" + package.version);
+            ut.write("watch-log@" + package.version + "\n");
             process.exit();
         }
+    },
 
-        //
-        var self = this;
-        fs.stat(file, function(err, stat) {
-            if(err === null) {
-                console.log("?>",file);
-                try {
-                    require(file);
-                }
-                catch (e) {
-                    console.log(e);
-                }
-                self.start(file);
-            } else if(err.code === 'ENOENT') {
-                console.error(
-                    colors.yellow.bold("WATCH-LOG >") +
-                    "  Config file 'watch.log.js' not found."
-                );
-                process.exit();
-            }
-        });
+    /**
+     *
+     */
+    checkConfig() {
+        if (!fs.existsSync(config)) {
+            ut.brandPad("Config file 'watch.log.js' not found.\n");
+            process.exit();
+        }
+        return config;
     },
 
     /**
@@ -89,63 +70,61 @@ module.exports = {
      * @param files
      */
     files: function(files) {
-        console.log("1>", this.watch.files);
-        this.watch.files = this.watch.files.concat(files);
-        return true;
+        this._watch.files = this._watch.files.concat(files);
     },
 
     /**
      *
      * @param config
      */
-    start: function(config) {
-        process.stdout.write(
-            colors.yellow.bold("WATCH-LOG >") +
-            "  Config file: '" + config + "'\n"
-        );
-
-        console.log("2>", this.watch.files);
-
-        for (var i in this.watch.files) {
-            if (!this.watch.files.hasOwnProperty(i)) { continue; }
-            var file = base + "/" + this.watch.files[i];
-            this.initStat(file);
-            process.stdout.write("             Adding file: '"+file+"'\n");
+    start: function() {
+        ut.brandPad("Config file: '" + ut.short(config, cols - 29) + "'\n");
+        for (var i in this._watch.files) {
+            if (!this._watch.files.hasOwnProperty(i)) { continue; }
+            var file = base + "/" + this._watch.files[i];
+            this._initStat(file);
+            ut.writePad("Adding file: '" + ut.short(file, cols - 29) + "'\n");
             fw.add(file);
         }
-
-        process.stdout.write("             Watching... ");
-
-        //
         var self = this;
-        fw.on("change", function (name, stat) {
-            if (typeof self.stats[name] === "number") {
-                var diff = stat.size - self.stats[name];
-                if (diff > 0) {
-                    self.diffLog(name, diff);
-                } else {
-                    self.tailLog(name, nuol);
-                }
-            } else {
-                self.tailLog(name, nuol);
-            }
-            self.stats[name] = stat.size;
+        fw.on("change", function (file, stat) {
+            self._change(file, stat);
+        });
+        ut.writePad("Watching... ");
+    },
+
+    /**
+     * Init file size on cache.
+     *
+     * @param file
+     */
+    _initStat: function(file) {
+        var self = this;
+        fs.stat(file, function(err, stat) {
+            if (err) { return; }
+            self._stats[file] = stat.size;
         });
     },
 
     /**
-     * Basic tail function get line of file.
+     * Handle log file changes.
      *
-     * @param filename
-     * @param line_no
-     * @param callback
+     * @param name
+     * @param stat
+     * @private
      */
-    tail: function (filename, length, callback) {
-        fs.readFile(filename, function (err, data) {
-            if (err) throw err;
-            var lines = data.toString("utf-8").trim().split("\n");
-            callback(null, lines.slice(-length));
-        });
+    _change: function (file, stat) {
+        if (typeof this._stats[file] === "number") {
+            var diff = stat.size - this._stats[file];
+            if (diff > 0) {
+                this._diffLog(file, diff);
+            } else {
+                this._tailLog(file, rows);
+            }
+        } else {
+            this._tailLog(file, rows);
+        }
+        this._stats[file] = stat.size;
     },
 
     /**
@@ -154,27 +133,12 @@ module.exports = {
      * @param filename
      * @param tail
      */
-    tailLog: function(filename, tail) {
+    _tailLog: function(file, tail) {
         var self = this;
-        this.tail(filename, nuol, function(err, lines) {
+        ut.tail(file, rows, function(err, lines) {
             if (err) { return console.log(err); }
-            self.print(filename, lines);
+            self.print(file, lines);
         })
-    },
-
-    /**
-     * Basic diff function.
-     *
-     * @param filename
-     * @param line_no
-     * @param callback
-     */
-    diff: function (filename, diff, callback) {
-        fs.readFile(filename, function (err, data) {
-            if (err) throw err;
-            var lines = data.toString('utf-8').substr(-diff).trim().split("\n");
-            callback(null, lines);
-        });
     },
 
     /**
@@ -183,26 +147,12 @@ module.exports = {
      * @param filename
      * @param diff
      */
-    diffLog: function (filename, diff) {
+    _diffLog: function (file, diff) {
         var self = this;
-        this.diff(filename, diff, function(err, lines) {
+        ut.diff(file, diff, function(err, lines) {
             if (err) { return console.log(err); }
-            self.print(filename, lines.slice(0, nuol));
+            self._printLog(file, lines.slice(0, rows));
         });
-    },
-
-    /**
-     * Build a spaces padded string.
-     *
-     * @param len
-     * @returns {string}
-     */
-    pad: function (len) {
-        var pad = "";
-        for (var i=0; i<len; i++) {
-            pad += " ";
-        }
-        return pad;
     },
 
     /**
@@ -210,86 +160,32 @@ module.exports = {
      * @param filename
      * @param lines
      */
-    print: function (filename, lines) {
-        var logLines = [];
+    _printLog: function (file, lines) {
+        var key = ut.getKey(file);
+        var pad = ut.pad(key.length + 4);
+        var max = cols - key.length - 10;
+        var log = [];
         for (var i in lines) {
-
             if (!lines.hasOwnProperty(i)) { continue; }
             var tabs = "";
             var line = lines[i];
-            while (line.length > this.limit) {
-                var pos = this.linePos(line);
+            while (line.length > max) {
+                var pos = ut.lineBreak(line, max);
                 var part = line.substr(0, pos + 1);
                 line = line.substr(pos + 1);
-                if (i == 0) { part = this.colorFiles(part); }
-                logLines.push(tabs + part.trim());
-                tabs = "    ";
+                if (i == 0) { part = ut.colorize(part); }
+                log.push(tabs + part.trim());
+                tabs = "   ";
             }
             line = line.trim();
             if (line.length > 0) {
-                if (i == 0) { line = this.colorFiles(line); }
-                logLines.push(tabs + line.trim());
+                if (i == 0) { line = ut.colorize(line); }
+                log.push(tabs + line.trim());
             }
         }
-        var key = path.basename(filename, ".log").toUpperCase();
-        var pad = this.pad(key.length + 4);
-        var msg = logLines.slice(0, nuol).join("\n" + pad);
+        var msg = log.slice(0, rows).join("\n" + pad);
         var pre = key === this.prevKey ? "\n" : "\n\n";
-        process.stdout.write(pre + colors.yellow.bold(key + " >") + "  " + msg + " ");
+        ut.write(pre + ut.colorKey(key + " >") + "  " + msg + " ");
         this.prevKey = key;
-    },
-
-    /**
-     * Get position to break string line.
-     *
-     * @param line
-     * @returns {number}
-     */
-    linePos: function(line) {
-        var breaks = ";,)]:> ";
-        var pos = this.limit + 30;
-        for (var j in breaks) {
-            if (!breaks.hasOwnProperty(j)) { continue; }
-            var p = line.indexOf(breaks[j], this.limit);
-            if (p !== -1 && p < pos) { pos = p; }
-        }
-        return pos;
-    },
-
-    /**
-     * Init file size on cache.
-     *
-     * @param file
-     */
-    initStat: function(file) {
-        var self = this;
-        fs.stat(file, function(err, stat) {
-            if (err) { return; }
-            self.stats[file] = stat.size;
-        });
-    },
-
-    /**
-     *
-     * @param line
-     */
-    colorFiles: function (line) {
-        var hot = line.match(/([^' ]+(\/[^:' ]+)+)/g);
-        if (hot && hot.length > 0) {
-            for (t in hot) {
-                if (hot.hasOwnProperty(t)) {
-                    line = line.replace(hot[t], colors.red.bold(hot[t]));
-                }
-            }
-        }
-        var hot = line.match(/([^' ]+(\\[^:' ]+)+)/g);
-        if (hot && hot.length > 0) {
-            for (t in hot) {
-                if (hot.hasOwnProperty(t)) {
-                    line = line.replace(hot[t], colors.cyan.bold(hot[t]));
-                }
-            }
-        }
-        return line;
     }
 };
