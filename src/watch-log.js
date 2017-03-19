@@ -8,27 +8,21 @@
 
 var ut = require("./utils.js");
 var fs = require("fs");
-var fw = require("chokidar").watch("all", {
+var fw = require("chokidar").watch("file", {
     persistent: true,
     usePolling: true
 });
 
 var path = require("path");
-var base = process.cwd();
 var rows = process.stdout.rows;
 var cols = process.stdout.columns;
-
-var config = base + "/watch.log.js";
 
 module.exports = {
 
     /**
      *
      */
-    _watch: {
-        files: [],
-        folders: []
-    },
+    _watch: [],
 
     /**
      *
@@ -44,40 +38,18 @@ module.exports = {
 
     /**
      *
-     * @param args
-     */
-    parseArgs: function(args) {
-        if (args[0] === "--version") {
-            var package = JSON.parse(fs.readFileSync(__dirname + "/../package.json"), "utf8");
-            ut.write("watch-log@" + package.version + "\n");
-            process.exit();
-        }
-    },
-
-    /**
-     *
-     */
-    checkConfig() {
-        if (!fs.existsSync(config)) {
-            ut.brandPad("Config file 'watch.log.js' not found.\n");
-            process.exit();
-        }
-        return config;
-    },
-
-    /**
-     *
      * @param files
      */
     files: function(files) {
-        this._watch.files = this._watch.files.concat(files);
+        this._watch = this._watch.concat(files);
+        this._start();
     },
 
     /**
      *
      * @param config
      */
-    start: function() {
+    _start: function() {
         ut.brandPad("Config file: '" + ut.short(config, cols - 29) + "'\n");
         for (var i in this._watch.files) {
             if (!this._watch.files.hasOwnProperty(i)) { continue; }

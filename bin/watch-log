@@ -1,8 +1,7 @@
 #!/usr/bin/env node
 
 "use strict";
-var watch = require("../src/watch-log");
-watch.parseArgs(process.argv.slice(2));
-var config = watch.checkConfig();
+var cli = require("../src/cli");
+cli.parseArgs(process.argv.slice(2));
+var config = cli.checkConfig();
 require(config);
-watch.start();
