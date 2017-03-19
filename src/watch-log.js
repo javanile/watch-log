@@ -110,7 +110,7 @@ module.exports = {
         var self = this;
         ut.tail(file, rows, function(err, lines) {
             if (err) { return console.log(err); }
-            self.print(file, lines);
+            self._printLog(file, lines);
         })
     },
 
