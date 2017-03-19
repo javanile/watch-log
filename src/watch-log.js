@@ -50,10 +50,11 @@ module.exports = {
      * @param config
      */
     _start: function() {
+        var config = process.cwd() + "/watch.log.js";
         ut.brandPad("Config file: '" + ut.short(config, cols - 29) + "'\n");
-        for (var i in this._watch.files) {
-            if (!this._watch.files.hasOwnProperty(i)) { continue; }
-            var file = base + "/" + this._watch.files[i];
+        for (var i in this._watch) {
+            if (!this._watch.hasOwnProperty(i)) { continue; }
+            var file = process.cwd() + "/" + this._watch[i];
             this._initStat(file);
             ut.writePad("Adding file: '" + ut.short(file, cols - 29) + "'\n");
             fw.add(file);
