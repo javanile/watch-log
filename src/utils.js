@@ -36,7 +36,7 @@ module.exports = {
      * @private
      */
     brandPad: function (text) {
-        this.write(this.colorKey("WATCH-LOG >") + "  " + text);
+        this.write("\n" + this.colorKey("WATCH-LOG >") + "  " + text);
     },
 
     /**
