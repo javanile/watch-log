@@ -7,6 +7,7 @@
  */
 
 var fs     = require("fs");
+var ut     = require("./utils.js");
 var base   = process.cwd();
 var config = base + "/watch.log.js";
 
