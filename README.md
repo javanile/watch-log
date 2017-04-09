@@ -3,7 +3,7 @@ Watch your log files during development and save your time.
 
 # usage
 
-1. Install on global watch-log tool
+1. Install global watch-log tool
 
 ```
 npm install watch-log -g
