@@ -1,7 +1,5 @@
 /*!
- * @module: watch-log
- * @file:   utils.js
- *
+ * watch-log
  * Copyright(c) 2016-2017 Javanile.org
  * MIT Licensed
  */
@@ -27,7 +25,7 @@ module.exports = {
      * @private
      */
     writePad: function (text) {
-        this.write(this.pad(13) + text);
+        this.write(this.pad(11) + text);
     },
 
     /**
@@ -36,7 +34,7 @@ module.exports = {
      * @private
      */
     brandPad: function (text) {
-        this.write(this.colorKey("WATCH-LOG >") + "  " + text);
+        this.write(this.colorKey("watch-log:") + " " + text);
     },
 
     /**
@@ -145,9 +143,9 @@ module.exports = {
      */
     short: function (text, len) {
         if (text.length > len) {
-            return "###" + text.substr(3 - len);
+            return colors.blue("###" + text.substr(3 - len));
         }
-        return text;
+        return colors.blue(text);
     },
 
     /**
@@ -155,7 +153,33 @@ module.exports = {
      * @param file
      * @returns {string}
      */
-    getKey: function (file) {
-        return path.basename(file, ".log").toUpperCase();
+    getSlug: function (file) {
+        return path.basename(file, ".log").toLowerCase();
+    },
+
+    /**
+     *
+     * @param file
+     * @returns {string}
+     */
+    getLongSlug: function (file) {
+        var dirname = path.dirname(file).toLowerCase();
+        var basename = path.basename(file, ".log").toLowerCase();
+
+        return dirname != "." ? dirname + "/" + basename : basename;
+    },
+
+    /**
+     * Get option value.
+     */
+    getOption: function (options, key, defaults) {
+        return typeof options[key] != "undefined" ? options[key] : defaults;
+    },
+
+    /**
+     * Check if not a value.
+     */
+    isEmpty: function (options, key) {
+        return typeof options[key] == "undefined" || !options[key];
     }
 };

@@ -1,28 +1,30 @@
 {
-  "name": "watch-log",
-  "version": "0.0.31",
-  "license": "MIT",
-  "author": {
-    "name": "Francesco Bianco",
-    "email": "bianco@javanile.org"
-  },
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/Javanile/watch-log.git"
-  },
-  "bin": {
-    "watch-log": "./bin/watch-log"
-  },
-  "main": "./src/watch-log.js",
-  "scripts": {
-    "coverage": "istanbul cover node_modules/mocha/bin/_mocha -- -R spec --recursive"
-  },
-  "dependencies": {
-    "colors": "^1.1.2",
-    "chokidar": "^1.6.1"
-  },
-  "devDependencies": {
-    "chai": "^3.5.0",
-    "mocha": "^3.2.0"
-  }
+    "name": "watch-log",
+    "version": "0.0.37",
+    "license": "MIT",
+    "author": {
+        "name": "Francesco Bianco",
+        "email": "bianco@javanile.org"
+    },
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/javanile/watch-log.git"
+    },
+    "bin": {
+        "watch-log": "./bin/watch-log"
+    },
+    "main": "./src/watch-log",
+    "scripts": {
+        "coverage": "istanbul cover node_modules/mocha/bin/_mocha -- -R spec --recursive"
+    },
+    "dependencies": {
+        "chokidar": "^1.6.1",
+        "colors": "^1.1.2",
+        "shelljs": "^0.7.8",
+        "yamljs": "^0.3.0"
+    },
+    "devDependencies": {
+        "chai": "^3.5.0",
+        "mocha": "^3.2.0"
+    }
 }

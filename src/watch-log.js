@@ -1,69 +1,109 @@
 /*!
- * @module: watch-log
- * @file:   watch-log.js
- *
+ * watch-log
  * Copyright(c) 2016-2017 Javanile.org
  * MIT Licensed
  */
 
-var ut = require("./utils.js");
-var fs = require("fs");
-var fw = require("chokidar").watch("file", {
+var fs = require("fs"),
+    path = require("path"),
+    yaml = require("yamljs"),
+    shell = require('shelljs'),
+    util = require("./util.js");
+
+var watch = require("chokidar").watch("file", {
     persistent: true,
     usePolling: true
 });
 
-var path = require("path");
-var rows = process.stdout.rows;
 var cols = process.stdout.columns;
 
 module.exports = {
 
     /**
+     * Working directory.
      *
+     * @var string
      */
-    _watch: [],
+    cwd: process.cwd(),
 
     /**
      *
      */
-    _stats: {
+    files: [],
+
+    /**
+     *
+     */
+    stats: {
 
     },
 
     /**
      *
      */
-    _prevKey: null,
+    slugs: {
 
-    /**
-     *
-     * @param files
-     */
-    files: function(files) {
-        this._watch = this._watch.concat(files);
-        this._start();
     },
 
     /**
      *
-     * @param config
      */
-    _start: function() {
-        var config = process.cwd() + "/watch.log.js";
-        ut.brandPad("Config file: '" + ut.short(config, cols - 29) + "'\n");
-        for (var i in this._watch) {
-            if (!this._watch.hasOwnProperty(i)) { continue; }
-            var file = process.cwd() + "/" + this._watch[i];
-            this._initStat(file);
-            ut.writePad("Adding file: '" + ut.short(file, cols - 29) + "'\n");
-            fw.add(file);
+    prevSlug: null,
+
+    /**
+     *
+     */
+    configFile: null,
+
+    /**
+     *
+     */
+    options: null,
+
+    /**
+     * Start deamon.
+     */
+    start: function(options) {
+        this.options = options;
+        this.configFile = util.getOption(options, "config", path.join(this.cwd, ".debug.yml"));
+
+        watch.add(this.configFile);
+
+        var self = this,
+            debugYml = yaml.load(this.configFile);
+
+        if (util.isEmpty(debugYml, "watch-log")) {
+            return util.error("no watch-log section on config file");
         }
-        var self = this;
-        fw.on("change", function (file, stat) {
-            self._change(file, stat);
+
+        if (util.isEmpty(debugYml["watch-log"], "files")) {
+            return util.error("no files on watch-log section");
+        }
+
+        this.files = debugYml["watch-log"]["files"];
+
+        util.brandPad("start: " + util.short(new Date(), cols - 29) + "\n");
+        util.writePad("config: " + util.short(this.configFile, cols - 29) + "\n");
+
+
+        for (var i in this.files) {
+            if (!this.files.hasOwnProperty(i)) { continue; }
+            var name = this.files[i];
+            var file = path.join(this.cwd, name);
+            this.initStat(file);
+            this.initSlug(file, name);
+            util.writePad("file: " + util.short(name, cols - 29) + "\n");
+            watch.add(file);
+        }
+
+        watch.on("change", function (file, stat) {
+            if (file == self.configFile) {
+                return self.changeConfig();
+            }
+            return self.changeLog(file, stat);
         });
-        ut.writePad("Watching... ");
+
+        util.writePad("watching... ");
     },
 
     /**
@@ -71,12 +111,55 @@ module.exports = {
      *
      * @param file
      */
-    _initStat: function(file) {
+    initStat: function(file) {
         var self = this;
+        if (!fs.existsSync(file)) {
+            if (!fs.existsSync(path.dirname(file))) {
+                shell.mkdir("-p", path.dirname(file));
+            }
+            fs.writeFileSync(file, "");
+        }
         fs.stat(file, function(err, stat) {
             if (err) { return; }
-            self._stats[file] = stat.size;
+            self.stats[file] = stat.size;
         });
+    },
+
+    /**
+     * Init file size on cache.
+     *
+     * @param file
+     */
+    initSlug: function(file, name) {
+        for (var f in this.slugs) {
+            if (!this.slugs.hasOwnProperty(f)) { continue; }
+            if (util.getSlug(name) == this.slugs[f].slug) {
+                this.slugs[f].slug = util.getLongSlug(this.slugs[f].name);
+                this.slugs[file] = {
+                    name: name,
+                    slug: util.getLongSlug(name)
+                }
+                return;
+            }
+        }
+        this.slugs[file] = {
+            name: name,
+            slug: util.getSlug(name)
+        };
+    },
+
+    /**
+     * Handle config changes.
+     *
+     * @param name
+     * @param stat
+     * @private
+     */
+    changeConfig: function (file, stat) {
+        this.prevSlug = null;
+        watch.close();
+        console.log("\n");
+        this.start(this.options);
     },
 
     /**
@@ -86,18 +169,21 @@ module.exports = {
      * @param stat
      * @private
      */
-    _change: function (file, stat) {
-        if (typeof this._stats[file] === "number") {
-            var diff = stat.size - this._stats[file];
+    changeLog: function (file, stat) {
+        var rows = process.stdout.rows;
+
+        if (typeof this.stats[file] === "number") {
+            var diff = stat.size - this.stats[file];
             if (diff > 0) {
-                this._diffLog(file, diff);
+                this.diffLog(file, diff);
             } else {
-                this._tailLog(file, rows);
+                this.tailLog(file, rows);
             }
         } else {
-            this._tailLog(file, rows);
+            this.tailLog(file, rows);
         }
-        this._stats[file] = stat.size;
+
+        this.stats[file] = stat.size;
     },
 
     /**
@@ -106,11 +192,13 @@ module.exports = {
      * @param filename
      * @param tail
      */
-    _tailLog: function(file, tail) {
-        var self = this;
-        ut.tail(file, rows, function(err, lines) {
+    tailLog: function(file, tail) {
+        var self = this,
+            rows = process.stdout.rows;
+
+        util.tail(file, rows, function(err, lines) {
             if (err) { return console.log(err); }
-            self._printLog(file, lines);
+            self.printLog(file, lines);
         })
     },
 
@@ -120,11 +208,13 @@ module.exports = {
      * @param filename
      * @param diff
      */
-    _diffLog: function (file, diff) {
-        var self = this;
-        ut.diff(file, diff, function(err, lines) {
+    diffLog: function (file, diff) {
+        var self = this,
+            rows = process.stdout.rows;
+
+        util.diff(file, diff, function(err, lines) {
             if (err) { return console.log(err); }
-            self._printLog(file, lines.slice(0, rows));
+            self.printLog(file, lines.slice(0, rows));
         });
     },
 
@@ -133,32 +223,36 @@ module.exports = {
      * @param filename
      * @param lines
      */
-    _printLog: function (file, lines) {
-        var key = ut.getKey(file);
-        var pad = ut.pad(key.length + 4);
-        var max = cols - key.length - 10;
+    printLog: function (file, lines) {
+        var rows = process.stdout.rows,
+            slug = this.slugs[file].slug;
+
+        var pad = util.pad(slug.length + 4);
+        var max = cols - slug.length - 10;
+
         var log = [];
         for (var i in lines) {
             if (!lines.hasOwnProperty(i)) { continue; }
             var tabs = "";
             var line = lines[i];
             while (line.length > max) {
-                var pos = ut.lineBreak(line, max);
+                var pos = util.lineBreak(line, max);
                 var part = line.substr(0, pos + 1);
                 line = line.substr(pos + 1);
-                if (i == 0) { part = ut.colorize(part); }
+                if (i == 0) { part = util.colorize(part); }
                 log.push(tabs + part.trim());
                 tabs = "   ";
             }
             line = line.trim();
             if (line.length > 0) {
-                if (i == 0) { line = ut.colorize(line); }
+                if (i == 0) { line = util.colorize(line); }
                 log.push(tabs + line.trim());
             }
         }
         var msg = log.slice(0, rows).join("\n" + pad);
-        var pre = key === this.prevKey ? "\n" : "\n\n";
-        ut.write(pre + ut.colorKey(key + " >") + "  " + msg + " ");
-        this.prevKey = key;
+        var pre = slug === this.prevSlug ? "\n" : "\n\n";
+        util.write(pre + util.colorKey(slug + ":") + " " + msg + " ");
+
+        this.prevSlug = slug;
     }
 };

@@ -1,7 +1,19 @@
 #!/usr/bin/env node
 
 "use strict";
-var cli = require("../src/cli");
-cli.parseArgs(process.argv.slice(2));
-var config = cli.checkConfig();
-require(config);
+
+var fs = require("fs"),
+    path = require("path"),
+    local = path.join(process.cwd(), "node_modules/watch-log/src/cli.js"),
+    argv = process.argv.slice(2),
+    cli = null;
+
+if (!fs.existsSync(local)) {
+    cli = require("../src/cli");
+} else {
+    cli = require(local);
+}
+
+cli.run(argv, function(output) {
+    console.log(output);
+});

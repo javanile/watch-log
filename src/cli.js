@@ -1,36 +1,38 @@
 /*!
- * @module: watch-log
- * @file:   cli.js
- *
+ * watch-log
  * Copyright(c) 2016-2017 Javanile.org
  * MIT Licensed
  */
 
-var fs     = require("fs");
-var ut     = require("./utils.js");
-var base   = process.cwd();
-var config = base + "/watch.log.js";
+var fs = require("fs"),
+    util = require("./util"),
+    watch = require("./watch-log");
 
 module.exports = {
 
     /**
+     * Command line entry-point.
      *
      * @param args
      */
-    parseArgs: function(args) {
+    run: function(args, callback) {
         if (args[0] === "--version") {
             var package = JSON.parse(fs.readFileSync(__dirname + "/../package.json"), "utf8");
-            ut.write("watch-log@" + package.version + "\n");
+            util.write("watch-log@" + package.version + "\n");
             process.exit();
         }
+
+        var options = {};
+
+        watch.start(options, callback);
     },
 
     /**
      *
      */
-    checkConfig() {
+    loadConfig: function() {
         if (!fs.existsSync(config)) {
-            ut.brandPad("Config file 'watch.log.js' not found.\n");
+            util.brandPad("Config file 'watch.log.js' not found.\n");
             process.exit();
         }
         return config;
