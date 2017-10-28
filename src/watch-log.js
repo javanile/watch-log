@@ -7,6 +7,7 @@
 var fs = require("fs"),
     path = require("path"),
     yaml = require("yamljs"),
+    wrap = require("wordwrap"),
     shell = require('shelljs'),
     util = require("./util.js");
 
@@ -27,26 +28,34 @@ module.exports = {
     cwd: process.cwd(),
 
     /**
+     * Watching files.
      *
+     * @var array
      */
     files: [],
 
     /**
+     * Watching files stats.
      *
+     * @var object
      */
     stats: {
 
     },
 
     /**
+     * Collect slugs of files.
      *
+     * @var object
      */
     slugs: {
 
     },
 
     /**
+     * Previsour slug.
      *
+     * @var string
      */
     prevSlug: null,
 
@@ -224,34 +233,26 @@ module.exports = {
      * @param lines
      */
     printLog: function (file, lines) {
-        var rows = process.stdout.rows,
-            slug = this.slugs[file].slug;
+        var logs = [],
+            rows = process.stdout.rows,
+            slug = this.slugs[file].slug,
+            cols = process.stdout.columns - slug.length - 6,
+            span = util.pad(slug.length + 2);
 
-        var pad = util.pad(slug.length + 4);
-        var max = cols - slug.length - 10;
-
-        var log = [];
         for (var i in lines) {
             if (!lines.hasOwnProperty(i)) { continue; }
-            var tabs = "";
-            var line = lines[i];
-            while (line.length > max) {
-                var pos = util.lineBreak(line, max);
-                var part = line.substr(0, pos + 1);
-                line = line.substr(pos + 1);
-                if (i == 0) { part = util.colorize(part); }
-                log.push(tabs + part.trim());
-                tabs = "   ";
-            }
-            line = line.trim();
-            if (line.length > 0) {
-                if (i == 0) { line = util.colorize(line); }
-                log.push(tabs + line.trim());
+            var line = wrap(cols)(lines[i]).split("\n");
+            for (var j in line) {
+                if (!line.hasOwnProperty(j)) { continue; }
+                logs.push((j > 0 ? ".  " : "") + util.colorize(line[j].trim()));
             }
         }
-        var msg = log.slice(0, rows).join("\n" + pad);
-        var pre = slug === this.prevSlug ? "\n" : "\n\n";
-        util.write(pre + util.colorKey(slug + ":") + " " + msg + " ");
+
+        logs = logs.slice(0, rows).join("\n" + span);
+
+        var newline = slug === this.prevSlug ? "\n" : "\n\n";
+
+        util.write(newline + util.colorKey(slug + ":") + " " + logs + " ");
 
         this.prevSlug = slug;
     }

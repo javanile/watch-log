@@ -109,7 +109,7 @@ module.exports = {
      * @param line
      */
     colorize: function (line) {
-        var hot = line.match(/([^' ]+(\/[^:' ]+)+)/g);
+        var hot = line.match(/([^'\(\) ]+(\/[^:'\(\) ]+)+)/g);
         if (hot && hot.length > 0) {
             for (t in hot) {
                 if (!hot.hasOwnProperty(t)) { continue; }

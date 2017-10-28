@@ -1,6 +1,6 @@
 {
     "name": "watch-log",
-    "version": "0.0.37",
+    "version": "0.0.38",
     "license": "MIT",
     "author": {
         "name": "Francesco Bianco",
@@ -21,6 +21,7 @@
         "chokidar": "^1.6.1",
         "colors": "^1.1.2",
         "shelljs": "^0.7.8",
+        "wordwrap": "^1.0.0",
         "yamljs": "^0.3.0"
     },
     "devDependencies": {
