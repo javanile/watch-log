@@ -241,7 +241,9 @@ module.exports = {
 
         for (var i in lines) {
             if (!lines.hasOwnProperty(i)) { continue; }
-            var line = wrap(cols)(lines[i].split("\\n").join("\n")).split("\n");
+            var raw = lines[i].split("\\n").join("\n");
+            raw = lines[i].split("&quot;").join("'");
+            var line = wrap(cols)(raw).split("\n");
             for (var j in line) {
                 if (!line.hasOwnProperty(j)) { continue; }
                 logs.push((j > 0 ? ".  " : "") + util.colorize(line[j].trim()));
