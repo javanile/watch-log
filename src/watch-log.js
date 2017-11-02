@@ -242,7 +242,7 @@ module.exports = {
         for (var i in lines) {
             if (!lines.hasOwnProperty(i)) { continue; }
             var raw = lines[i].split("\\n").join("\n");
-            raw = lines[i].split("&quot;").join("'");
+            raw = raw.split("&quot;").join("'");
             var line = wrap(cols)(raw).split("\n");
             for (var j in line) {
                 if (!line.hasOwnProperty(j)) { continue; }
