@@ -16,13 +16,27 @@ module.exports = {
      * @param args
      */
     run: function(args, callback) {
-        if (args[0] === "--version") {
+        if (!args) { args = []; }
+
+        if (args.indexOf("--version") > -1) {
             var package = JSON.parse(fs.readFileSync(__dirname + "/../package.json"), "utf8");
             util.write("watch-log@" + package.version + "\n");
             process.exit();
         }
 
-        var options = {};
+        var options = {
+            debug: false,
+            showInfo: false
+        };
+
+        if (args.indexOf("--info") > -1) {
+            options.showInfo = true;
+        }
+
+        if (args.indexOf("--debug") > -1) {
+            options.debug = true;
+            options.showInfo = true;
+        }
 
         watch.start(options, callback);
     },

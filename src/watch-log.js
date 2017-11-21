@@ -8,7 +8,7 @@ var fs = require("fs"),
     path = require("path"),
     yaml = require("yamljs"),
     wrap = require("wordwrap"),
-    shell = require('shelljs'),
+    shell = require("shelljs"),
     util = require("./util.js");
 
 var watch = require("chokidar").watch("file", {
@@ -94,14 +94,17 @@ module.exports = {
         util.brandPad("start: " + util.short(new Date(), cols - 29) + "\n");
         util.writePad("config: " + util.short(this.configFile, cols - 29) + "\n");
 
-
         for (var i in this.files) {
             if (!this.files.hasOwnProperty(i)) { continue; }
             var name = this.files[i];
             var file = path.join(this.cwd, name);
             this.initStat(file);
             this.initSlug(file, name);
-            util.writePad("file: " + util.short(name, cols - 29) + "\n");
+            var info = name;
+            if (util.isEnabled(this.options, "showInfo")) {
+                info += " (" + this.stats[file] + " byte)";
+            }
+            util.writePad("file: " + util.short(info, cols - 29) + "\n");
             watch.add(file);
         }
 
@@ -111,6 +114,12 @@ module.exports = {
             }
             return self.changeLog(file, stat);
         });
+
+        if (util.isEnabled(this.options, "debug")) {
+            watch.on("raw", function (event, path, details) {
+                util.debug("watch(" + event + ")", path);
+            });
+        }
 
         util.writePad("watching... ");
     },
@@ -128,10 +137,9 @@ module.exports = {
             }
             fs.writeFileSync(file, "");
         }
-        fs.stat(file, function(err, stat) {
-            if (err) { return; }
-            self.stats[file] = stat.size;
-        });
+
+        var stat = fs.statSync(file);
+        self.stats[file] = stat.size;
     },
 
     /**

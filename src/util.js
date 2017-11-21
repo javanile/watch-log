@@ -37,6 +37,10 @@ module.exports = {
         this.write(this.colorKey("watch-log:") + " " + text);
     },
 
+    debug: function (key, message) {
+        this.write("\n" + this.colorDebug(key + ":") + " " + message);
+    },
+
     /**
      * Basic tail function get line of file.
      *
@@ -138,6 +142,15 @@ module.exports = {
     /**
      *
      * @param text
+     * @returns {*|string}
+     */
+    colorDebug: function (text) {
+        return colors.magenta.bold(text);
+    },
+
+    /**
+     *
+     * @param text
      * @param len
      * @returns {*}
      */
@@ -181,5 +194,14 @@ module.exports = {
      */
     isEmpty: function (options, key) {
         return typeof options[key] == "undefined" || !options[key];
+    },
+
+    /**
+     *
+     * @param opts
+     * @param key
+     */
+    isEnabled: function (opts, key) {
+        return typeof opts[key] != "undefined" && opts[key]
     }
 };
