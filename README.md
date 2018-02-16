@@ -1,10 +1,9 @@
-# watch-log
-
-Watch your log files during development and save your time.
-
+# watch-log \ 
 [![Build Status](https://travis-ci.org/javanile-bot/watch-log.svg?branch=master)](https://travis-ci.org/javanile-bot/watch-log)
 [![Code Climate](https://codeclimate.com/github/javanile-bot/watch-log/badges/gpa.svg)](https://codeclimate.com/github/javanile-bot/watch-log)
 [![Test Coverage](https://codeclimate.com/github/javanile-bot/watch-log/badges/coverage.svg)](https://codeclimate.com/github/javanile-bot/watch-log/coverage)
+
+Watch your log files during development and save your time.
 
 # usage
 
