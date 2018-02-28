@@ -25,8 +25,8 @@ watch-log:
 ```
 
 **STEP 3** - Simply run watch-log on your folder project on bash console
-```
-watch-log
+```bash
+$ watch-log
 ```
 
 **STEP 4** - When a log file changes output are ready for your debug.
