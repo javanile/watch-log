@@ -6,7 +6,7 @@ Watch your log files during development and save your time.
 [![Code Climate](https://codeclimate.com/github/javanile-bot/watch-log/badges/gpa.svg)](https://codeclimate.com/github/javanile-bot/watch-log)
 [![Test Coverage](https://codeclimate.com/github/javanile-bot/watch-log/badges/coverage.svg)](https://codeclimate.com/github/javanile-bot/watch-log/coverage)
 
-# usage
+## usage
 
 **STEP 1** - Install global 'watch-log' tool
 
