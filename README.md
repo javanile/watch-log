@@ -8,13 +8,13 @@ Watch your log files during development and save your time.
 
 # usage
 
-1. Install global 'watch-log' tool
+**STEP 1** - Install global 'watch-log' tool
 
-```
-npm install watch-log -g
+```bash
+$ npm install watch-log -g
 ```
 
-2. Create a file ".debug.yml" into your project with relatives path of log files to get under the watcher activity
+**STEP 2** - Create a file ".debug.yml" into your project with relatives path of log files to get under the watcher activity
 
 ```yml
 ## file: .debug.yml
@@ -24,9 +24,9 @@ watch-log:
     - logs/debug.log 
 ```
 
-3. Simply run watch-log on your folder project on bash console
+**STEP 3** - Simply run watch-log on your folder project on bash console
 ```
 watch-log
 ```
 
-4. When a log file changes output are ready for your debug.
+**STEP 4** - When a log file changes output are ready for your debug.
